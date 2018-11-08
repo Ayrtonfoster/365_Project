@@ -80,7 +80,7 @@ def AStarAlgo():
         #B) Pass the starting and ending node to the pathing algorithm
         #C) Pathing algorithm will return the time it took to rach the starting node to the destination node  
         #D) Add the total time to the cars current concept of time 
-        #E) Add the wait time to the master wait time variable
+        #E) Add the wait time to the master wait time variable + time it took for uber to just respond to request
         #F) Return the resting node of the "car" to its resting_car_location variable 
         #G) Call pathing algorith again, this time for pickup -> dropoff, return same vars and perform same actions   
 
@@ -94,6 +94,15 @@ def AStarAlgo():
     #i) Easy!                         
 
 
+
+#Imortant notes:
+    # When a car completes a "route" (ie responds to a pickup requests, pickups passenger, delivers passenger to dropp off location)
+    # The total wait time for the passenger is 
+        #i) The time it took for the uber to aknowledge the pickup request (uber current time - pickup request time)
+        #ii) + the time it took for the uber to reach the passenger
+
+    # The total wait time for passengers will build up if the pathing algorithm is efficient, 
+    # Since the more time spent drving means more requests will build up over time.     
 
 
 
