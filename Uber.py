@@ -10,40 +10,47 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 
+import pandas as pd
+
 #will now try to outline how the algorithm will work
 
 
-#This function will take the data from the csv file and put in a list
-'''*Convert this function to return one of the three columns in requests.csv'''
-def readRequestsFile(filename, column):
-    rows=[]
-
-    with open(filename) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=' ')
-        for row in csv_reader:
-            val = row[0]
-            rows.append(val)
-        return rows 
+#This function will take the data from the teh requests.csv and returns all three columns as lists
+def readRequestsFile(filename):
+    df = pd.read_csv(filename, names=['start', 'end', 'timestamp'])
+    start_time = df.start
+    end_time = df.end
+    pickup_time = df.timestamp
+    return start_time, end_time, pickup_time
 
 
 #This function will take the data from data from network.csv 
 def readNetworkFile(filename): 
-    hi = 5
-
+    df = pd.read_csv(filename, header=None)
+    #m = df.unstack()
+    #m = m.fillna(0)
+    #print (m)
+    return df
 
 #This function will compute the A* Algorithm / be the main function from which A* Operates
 #It will return the time it took to reach node A from node B 
 def AStarAlgo():
-    hi = 5
+    ho = 5
 
 
+###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
+
+network = readNetworkFile("network.csv")
+print(network)
+#print([0][0])
+
+start_time, end_time, pickup_time = readRequestsFile("requests.csv")
+#print(start_time)
+#print(end_time)
+#print(pickup_time)
 
 
-
-
-
-
-
+###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
 
 #######################OUTLINING ALGORITHM###############
@@ -60,10 +67,10 @@ def AStarAlgo():
     #i)
     #ii) non global vars car1time, car2time, waitTime, CALocation, CBLocation      
 
-    ''' Tentative step (not sure if I should do this now) Not everything in step4 is in order  '''
+''' Tentative step (not sure if I should do this now) Not everything in step4 is in order  '''
 #4) Start the task by having each of the two "cars" choose the first two pickup requests, picking them up, then dropping them off
-    ''' Here a sorting algorithm will be given the STARTING and ENDING node '''
-    ''' It will the pickup time, travel to destination time, and total time '''
+''' Here a sorting algorithm will be given the STARTING and ENDING node '''
+''' It will the pickup time, travel to destination time, and total time '''
     #i) Of note: I will assume both cars start at node 0 
 
     #ii) In each Algorith, record down how long it took each car to 
@@ -72,9 +79,8 @@ def AStarAlgo():
         #C) In each ride add the time to pickup (ttp) to the continously current amount
         #D) Record down how long it to complete the whole pickup and drop off task
         #E) Finally record down the location that the car dopped its passengers off at     
-
-    ''' Initial case over, begin looping through all the different requests '''
-    ''' The pathing loop will be called twice for each request -> Path to reach pickup location, then to passenger destination '''
+''' Initial case over, begin looping through all the different requests '''
+''' The pathing loop will be called twice for each request -> Path to reach pickup location, then to passenger destination '''
     #iii) Compare the overall time it took each "car" to complete its run
         #A) The Car with the lower overall time will take the next pickup request with the lowest time 
         #B) Pass the starting and ending node to the pathing algorithm
