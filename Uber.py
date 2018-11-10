@@ -18,10 +18,10 @@ import pandas as pd
 #This function will take the data from the teh requests.csv and returns all three columns as lists
 def readRequestsFile(filename):
     df = pd.read_csv(filename, names=['start', 'end', 'timestamp'])
-    start_time = df.start
-    end_time = df.end
+    start_location = df.start
+    end_location = df.end
     pickup_time = df.timestamp
-    return start_time, end_time, pickup_time
+    return start_location, end_location, pickup_time
 
 
 #This function will take the data from data from network.csv 
@@ -44,7 +44,7 @@ network = readNetworkFile("network.csv")
 print(network)
 #print([0][0])
 
-start_time, end_time, pickup_time = readRequestsFile("requests.csv")
+start_location, end_location, pickup_time = readRequestsFile("requests.csv")
 #print(start_time)
 #print(end_time)
 #print(pickup_time)
@@ -64,7 +64,7 @@ start_time, end_time, pickup_time = readRequestsFile("requests.csv")
     #i) The data will be stored in an uknown format -> likely as a python 2d list 
 
 #3) Initialize the global variables that may be needed for this algorithm
-    #i)
+    #i) graph, start_time
     #ii) non global vars car1time, car2time, waitTime, CALocation, CBLocation      
 
 ''' Tentative step (not sure if I should do this now) Not everything in step4 is in order  '''
