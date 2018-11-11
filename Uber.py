@@ -9,8 +9,10 @@ import random
 from random import randint 
 import numpy as np
 import matplotlib.pyplot as plt
-
 import pandas as pd
+import sys 
+import math
+
 
 #will now try to outline how the algorithm will work
 
@@ -34,8 +36,231 @@ def readNetworkFile(filename):
 
 #This function will compute the A* Algorithm / be the main function from which A* Operates
 #It will return the time it took to reach node A from node B 
-def AStarAlgo():
-    ho = 5
+#def AStarAlgo():
+#    ho = 5
+'''
+class Graph():
+ 
+    def __init__(self, vertices):
+        self.V = vertices
+        self.graph = [[0 for column in range(vertices)] 
+                      for row in range(vertices)]
+ 
+    def printSolution(self, dist):
+        print ("Vertex tDistance from Source")
+        for node in range(self.V):
+            print (node,"t",dist[node])
+ 
+    # A utility function to find the vertex with 
+    # minimum distance value, from the set of vertices 
+    # not yet included in shortest path tree
+    def minDistance(self, dist, sptSet):
+ 
+        # Initilaize minimum distance for next node
+        min = sys.maxsize
+ 
+        # Search not nearest vertex not in the 
+        # shortest path tree
+        for v in range(self.V):
+            if dist[v] < min and sptSet[v] == False:
+                min = dist[v]
+                min_index = v
+ 
+        return min_index
+ 
+    # Funtion that implements Dijkstra's single source 
+    # shortest path algorithm for a graph represented 
+    # using adjacency matrix representation
+    def dijkstra(self, src):
+ 
+        dist = [sys.maxsize] * self.V
+        dist[src] = 0
+        sptSet = [False] * self.V
+ 
+        for cout in range(self.V):
+ 
+            # Pick the minimum distance vertex from 
+            # the set of vertices not yet processed. 
+            # u is always equal to src in first iteration
+            u = self.minDistance(dist, sptSet)
+ 
+            # Put the minimum distance vertex in the 
+            # shotest path tree
+            sptSet[u] = True
+ 
+            # Update dist value of the adjacent vertices 
+            # of the picked vertex only if the current 
+            # distance is greater than new distance and
+            # the vertex in not in the shotest path tree
+            for v in range(self.V):
+                if (self.graph[u][v] > 0 and sptSet[v] == False and dist[v] > dist[u] + self.graph[u][v]):
+                        dist[v] = dist[u] + self.graph[u][v]
+ 
+        self.printSolution(dist)
+        #print("done a node!")
+'''
+####################################NEW CODE STUFF########################
+
+class PriorityQueue:
+    # Based on Min Heap
+    def __init__(self):
+        self.cur_size = 0
+        self.array = []
+        self.pos = {}   # To store the pos of node in array
+
+    def isEmpty(self):
+        return self.cur_size == 0
+
+    def min_heapify(self, idx):
+        lc = self.left(idx)
+        rc = self.right(idx)
+        if lc < self.cur_size and self.array(lc)[0] < self.array(idx)[0]:
+            smallest = lc
+        else:
+            smallest = idx
+        if rc < self.cur_size and self.array(rc)[0] < self.array(smallest)[0]:
+            smallest = rc
+        if smallest != idx:
+            self.swap(idx, smallest)
+            self.min_heapify(smallest)
+
+    def insert(self, tup):
+        # Inserts a node into the Priority Queue
+        self.pos[tup[1]] = self.cur_size
+        self.cur_size += 1
+        self.array.append((sys.maxsize, tup[1]))
+        self.decrease_key((sys.maxsize, tup[1]), tup[0])
+
+    def extract_min(self):
+        # Removes and returns the min element at top of priority queue
+        min_node = self.array[0][1]
+        self.array[0] = self.array[self.cur_size - 1]
+        self.cur_size -= 1
+        self.min_heapify(1)
+        del self.pos[min_node]
+        return min_node
+
+    def left(self, i):
+        # returns the index of left child
+        return 2 * i + 1
+
+    def right(self, i):
+        # returns the index of right child
+        return 2 * i + 2
+
+    def par(self, i):
+        # returns the index of parent
+        return math.floor(i / 2)
+
+    def swap(self, i, j):
+        # swaps array elements at indices i and j
+        # update the pos{}
+        self.pos[self.array[i][1]] = j
+        self.pos[self.array[j][1]] = i
+        temp = self.array[i]
+        self.array[i] = self.array[j]
+        self.array[j] = temp
+
+    def decrease_key(self, tup, new_d):
+        idx = self.pos[tup[1]]
+        # assuming the new_d is atmost old_d
+        self.array[idx] = (new_d, tup[1])
+        while idx > 0 and self.array[self.par(idx)][0] > self.array[idx][0]:
+            self.swap(idx, self.par(idx))
+            idx = self.par(idx)
+
+
+class Graph:
+    def __init__(self, num):
+        self.adjList = {}   # To store graph: u -> (v,w)
+        self.num_nodes = num    # Number of nodes in graph
+        # To store the distance from source vertex
+        self.dist = [0] * self.num_nodes
+        self.par = [-1] * self.num_nodes  # To store the path
+
+    def add_edge(self, u, v, w):
+        #  Edge going from node u to v and v to u with weight w
+        # u (w)-> v, v (w) -> u
+        # Check if u already in graph
+        if u in self.adjList.keys():
+            self.adjList[u].append((v, w))
+        else:
+            self.adjList[u] = [(v, w)]
+
+        # Assuming undirected graph
+        if v in self.adjList.keys():
+            self.adjList[v].append((u, w))
+        else:
+            self.adjList[v] = [(u, w)]
+
+    def show_graph(self):
+        # u -> v(w)
+        for u in self.adjList:
+            print(u, '->', ' -> '.join(str("{}({})".format(v, w))
+                                       for v, w in self.adjList[u]))
+
+    def dijkstra(self, src):
+        # Flush old junk values in par[]
+        self.par = [-1] * self.num_nodes
+        # src is the source node
+        self.dist[src] = 0
+        Q = PriorityQueue()
+        Q.insert((0, src))  # (dist from src, node)
+        for u in self.adjList.keys():
+            if u != src:
+                self.dist[u] = sys.maxsize  # Infinity
+                self.par[u] = -1
+
+        while not Q.isEmpty():
+            u = Q.extract_min()  # Returns node with the min dist from source
+            # Update the distance of all the neighbours of u and
+            # if their prev dist was INFINITY then push them in Q
+            for v, w in self.adjList[u]:
+                new_dist = self.dist[u] + w
+                if self.dist[v] > new_dist:
+                    if self.dist[v] == sys.maxsize:
+                        Q.insert((new_dist, v))
+                    else:
+                        Q.decrease_key((self.dist[v], v), new_dist)
+                    self.dist[v] = new_dist
+                    self.par[v] = u
+
+        # Show the shortest distances from src
+        self.show_distances(src)
+
+    def show_distances(self, src):
+        print("Distance from node: {}".format(src))
+        for u in range(self.num_nodes):
+            print('Node {} has distance: {}'.format(u, self.dist[u]))
+
+    def show_path(self, src, dest):
+        # To show the shortest path from src to dest
+        # WARNING: Use it *after* calling dijkstra
+        path = []
+        cost = 0
+        temp = dest
+        # Backtracking from dest to src
+        while self.par[temp] != -1:
+            path.append(temp)
+            if temp != src:
+                for v, w in self.adjList[temp]:
+                    if v == self.par[temp]:
+                        cost += w
+                        break
+            temp = self.par[temp]
+        path.append(src)
+        path.reverse()
+
+        print('----Path to reach {} from {}----'.format(dest, src))
+        for u in path:
+            print('{}'.format(u), end=' ')
+            if u != dest:
+                print('-> ', end='')
+
+        print('\nTotal cost of path: ', cost)
+
+####################################END NEW CODE STUFF########################
+
 
 
 ###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
@@ -49,6 +274,22 @@ start_location, end_location, pickup_time = readRequestsFile("requests.csv")
 #print(end_time)
 #print(pickup_time)
 
+# Driver program
+g  = Graph(50)
+g.graph = network
+'''g.graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
+           [4, 0, 8, 0, 0, 0, 0, 11, 0],
+           [0, 8, 0, 7, 0, 4, 0, 0, 2],
+           [0, 0, 7, 0, 9, 14, 0, 0, 0],
+           [0, 0, 0, 9, 0, 10, 0, 0, 0],
+           [0, 0, 4, 14, 10, 0, 2, 0, 0],
+           [0, 0, 0, 0, 0, 2, 0, 1, 6],
+           [8, 11, 0, 0, 0, 0, 1, 0, 7],
+           [0, 0, 2, 0, 0, 0, 6, 7, 0]
+          ]'''
+ 
+g.dijkstra(0)
+g.show_path(0,42)
 
 ###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
@@ -121,3 +362,39 @@ start_location, end_location, pickup_time = readRequestsFile("requests.csv")
 #4) How will we divide this algorithm up in terms of functions
 
 ##########################################END QUESTIONS###############################    
+
+
+
+
+############################################RANDOM CODE###############################
+
+'''
+def heuristic(a, b):
+    (x1, y1) = a
+    (x2, y2) = b
+    return abs(x1 - x2) + abs(y1 - y2)
+
+def a_star_search(graph, start, goal):
+    frontier = PriorityQueue()
+    frontier.put(start, 0)
+    came_from = {}
+    cost_so_far = {}
+    came_from[start] = None
+    cost_so_far[start] = 0
+    
+    while not frontier.empty():
+        current = frontier.get()
+        
+        if current == goal:
+            break
+        
+        for next in graph.neighbors(current):
+            new_cost = cost_so_far[current] + graph.cost(current, next)
+            if next not in cost_so_far or new_cost < cost_so_far[next]:
+                cost_so_far[next] = new_cost
+                priority = new_cost + heuristic(goal, next)
+                frontier.put(next, priority)
+                came_from[next] = current
+    
+    return came_from, cost_so_far
+'''
