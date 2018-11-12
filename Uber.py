@@ -13,6 +13,10 @@ import pandas as pd
 import sys 
 import math
 
+#########################################GOLBAL VARIABLES############################
+target_noder = 10
+noder_distance = 0
+
 
 #will now try to outline how the algorithm will work
 
@@ -38,18 +42,30 @@ def readNetworkFile(filename):
 #It will return the time it took to reach node A from node B 
 #def AStarAlgo():
 #    ho = 5
-'''
+
 class Graph():
  
     def __init__(self, vertices):
+        self.adjList = {}   # To store graph: u -> (v,w)
+        #self.num_nodes = vertices    # Number of nodes in graph
+
+
         self.V = vertices
         self.graph = [[0 for column in range(vertices)] 
                       for row in range(vertices)]
+
+
+        self.dist = [0] * self.V
+        self.par = [-1] * self.V  # To store the path                      
  
     def printSolution(self, dist):
+        global target_noder
+        global noder_distance
         print ("Vertex tDistance from Source")
         for node in range(self.V):
             print (node,"t",dist[node])
+            if(node == 10):
+                noder_distance = dist[node]
  
     # A utility function to find the vertex with 
     # minimum distance value, from the set of vertices 
@@ -95,12 +111,224 @@ class Graph():
             for v in range(self.V):
                 if (self.graph[u][v] > 0 and sptSet[v] == False and dist[v] > dist[u] + self.graph[u][v]):
                         dist[v] = dist[u] + self.graph[u][v]
- 
+
+        #if (node == 10):
+        #    return dist[node]
         self.printSolution(dist)
-        #print("done a node!")
-'''
+
+
+    def show_path(self, src, dest):
+        # To show the shortest path from src to dest
+        # WARNING: Use it *after* calling dijkstra
+        path = []
+        cost = 0
+        temp = dest
+        # Backtracking from dest to src
+        while self.par[temp] != -1:
+            path.append(temp)
+            if temp != src:
+                for v, w in self.adjList[temp]:
+                    if v == self.par[temp]:
+                        cost += w
+                        break
+            temp = self.par[temp]
+        path.append(src)
+        path.reverse()
+
+        print('----Path to reach {} from {}----'.format(dest, src))
+        for u in path:
+            print('{}'.format(u), end=' ')
+            if u != dest:
+                print('-> ', end='')
+
+        print('\nTotal cost of path: ', cost)        
+
+def mainAlgo(start_location, end_location, pickup_time):
+    stuff = 0
+
+    car1_location = 0
+    car2_location = 0
+    car1_time = 0
+    car2_time = 0
+    tot_wait_time = 0
+    pickups_completed = len(pickup_time)
+
+    while (pickups_completed != 0):
+
+        #Section for case where the next pickup request time is greater than both cars current time
+
+
+
+        #section where only one cars current time is less than next pickup request time
+
+
+
+        #section where both cars current time is greater than the next pickup time
+            #Choose the car with the lower current time as pickup car 
+
+
+
+
+
+
+
+
+
+
+    return tot_wait_time
+
+    
+
 ####################################NEW CODE STUFF########################
 
+####################################END NEW CODE STUFF########################
+
+
+
+###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
+
+network = readNetworkFile("network.csv")
+print(network)
+#print([0][0])
+
+start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+#print(start_time)
+#print(end_time)
+#print(pickup_time)
+
+# Driver program
+g  = Graph(50)
+g.graph = network
+'''g.graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
+            [4, 0, 8, 0, 0, 0, 0, 11, 0],
+            [0, 8, 0, 7, 0, 4, 0, 0, 2],
+            [0, 0, 7, 0, 9, 14, 0, 0, 0],
+            [0, 0, 0, 9, 0, 10, 0, 0, 0],
+            [0, 0, 4, 14, 10, 0, 2, 0, 0],
+            [0, 0, 0, 0, 0, 2, 0, 1, 6],
+            [8, 11, 0, 0, 0, 0, 1, 0, 7],
+            [0, 0, 2, 0, 0, 0, 6, 7, 0]
+            ]'''
+    
+g.dijkstra(0)
+print("distance from 0 to ",target_noder," is ",noder_distance)
+#g.show_path(0,10)
+
+
+time_waiting = mainAlgo(start_location, end_location, pickup_time)
+print(time_waiting)
+
+###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
+
+
+#######################OUTLINING ALGORITHM###############
+
+#1) Call a function that that will return the three columns in requests.csv, each as a python list
+    #i) Pickup Request Time (ie: time pick up is requested)
+    #ii) The Picket Location (ie: where the passenger needs to be picked up)
+    #iii) The Dropoff location (ie: where the passenger wants to be dropped off)
+
+#2) Call a function that will return the contents of network.csv into a format that can be used by a pathing algo
+    #i) The data will be stored in an uknown format -> likely as a python 2d list 
+
+#3) Initialize the global variables that may be needed for this algorithm
+    #i) graph, start_time
+    #ii) non global vars car1time, car2time, waitTime, CALocation, CBLocation      
+
+''' Tentative step (not sure if I should do this now) Not everything in step4 is in order  '''
+#4) Start the task by having each of the two "cars" choose the first two pickup requests, picking them up, then dropping them off
+''' Here a sorting algorithm will be given the STARTING and ENDING node '''
+''' It will the pickup time, travel to destination time, and total time '''
+    #i) Of note: I will assume both cars start at node 0 
+
+    #ii) In each Algorith, record down how long it took each car to 
+        #A) reach the passenger 
+        #B) Then seperatly how long it took to deliver them to the drop of location  
+        #C) In each ride add the time to pickup (ttp) to the continously current amount
+        #D) Record down how long it to complete the whole pickup and drop off task
+        #E) Finally record down the location that the car dopped its passengers off at     
+''' Initial case over, begin looping through all the different requests '''
+''' The pathing loop will be called twice for each request -> Path to reach pickup location, then to passenger destination '''
+    #iii) Compare the overall time it took each "car" to complete its run
+        #A) The Car with the lower overall time will take the next pickup request with the lowest time 
+        #B) Pass the starting and ending node to the pathing algorithm
+        #C) Pathing algorithm will return the time it took to rach the starting node to the destination node  
+        #D) Add the total time to the cars current concept of time 
+        #E) Add the wait time to the master wait time variable + time it took for uber to just respond to request
+        #F) Return the resting node of the "car" to its resting_car_location variable 
+        #G) Call pathing algorith again, this time for pickup -> dropoff, return same vars and perform same actions   
+
+    #IV) Check the current time of "car1" vs "car2" again choose car to perfrom next pickup based on lower "current time"   
+        #A) Repeat the process iii) with the new ride request 
+        
+    #V) Repeat the algorithm until all pickup requests have been fulfilled 
+        #A) return the overall time it took to complete all Runs, as well as total passenger wait time
+
+#5) Print out the results to the screen!
+    #i) Easy!                         
+
+
+
+#Imortant notes:
+    # When a car completes a "route" (ie responds to a pickup requests, pickups passenger, delivers passenger to dropp off location)
+    # The total wait time for the passenger is 
+        #i) The time it took for the uber to aknowledge the pickup request (uber current time - pickup request time)
+        #ii) + the time it took for the uber to reach the passenger
+
+    # The total wait time for passengers will build up if the pathing algorithm is efficient, 
+    # Since the more time spent drving means more requests will build up over time.     
+
+
+
+##########################################QUESTIONS##################################
+
+#1) What Pathing algorithm should we use? 
+#2) How do we represent the data in a form the pathing algorith can understand? 
+#3) How can we make the algorithm even more efficient -> decrease wait times (Assuming algo works)
+    #i) Dont necessarly choose cars for trips based on availability, maybe on proximity to pickup location?
+#4) How will we divide this algorithm up in terms of functions
+
+##########################################END QUESTIONS###############################    
+
+
+
+
+############################################RANDOM CODE###############################
+
+'''
+def heuristic(a, b):
+    (x1, y1) = a
+    (x2, y2) = b
+    return abs(x1 - x2) + abs(y1 - y2)
+
+def a_star_search(graph, start, goal):
+    frontier = PriorityQueue()
+    frontier.put(start, 0)
+    came_from = {}
+    cost_so_far = {}
+    came_from[start] = None
+    cost_so_far[start] = 0
+    
+    while not frontier.empty():
+        current = frontier.get()
+        
+        if current == goal:
+            break
+        
+        for next in graph.neighbors(current):
+            new_cost = cost_so_far[current] + graph.cost(current, next)
+            if next not in cost_so_far or new_cost < cost_so_far[next]:
+                cost_so_far[next] = new_cost
+                priority = new_cost + heuristic(goal, next)
+                frontier.put(next, priority)
+                came_from[next] = current
+    
+    return came_from, cost_so_far
+'''
+
+#######################################SEPERATE BETWEEN DIFFERENT OLD CODE################
+
+'''
 class PriorityQueue:
     # Based on Min Heap
     def __init__(self):
@@ -258,143 +486,4 @@ class Graph:
                 print('-> ', end='')
 
         print('\nTotal cost of path: ', cost)
-
-####################################END NEW CODE STUFF########################
-
-
-
-###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
-
-network = readNetworkFile("network.csv")
-print(network)
-#print([0][0])
-
-start_location, end_location, pickup_time = readRequestsFile("requests.csv")
-#print(start_time)
-#print(end_time)
-#print(pickup_time)
-
-# Driver program
-g  = Graph(50)
-g.graph = network
-'''g.graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
-           [4, 0, 8, 0, 0, 0, 0, 11, 0],
-           [0, 8, 0, 7, 0, 4, 0, 0, 2],
-           [0, 0, 7, 0, 9, 14, 0, 0, 0],
-           [0, 0, 0, 9, 0, 10, 0, 0, 0],
-           [0, 0, 4, 14, 10, 0, 2, 0, 0],
-           [0, 0, 0, 0, 0, 2, 0, 1, 6],
-           [8, 11, 0, 0, 0, 0, 1, 0, 7],
-           [0, 0, 2, 0, 0, 0, 6, 7, 0]
-          ]'''
- 
-g.dijkstra(0)
-g.show_path(0,42)
-
-###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
-
-
-#######################OUTLINING ALGORITHM###############
-
-#1) Call a function that that will return the three columns in requests.csv, each as a python list
-    #i) Pickup Request Time (ie: time pick up is requested)
-    #ii) The Picket Location (ie: where the passenger needs to be picked up)
-    #iii) The Dropoff location (ie: where the passenger wants to be dropped off)
-
-#2) Call a function that will return the contents of network.csv into a format that can be used by a pathing algo
-    #i) The data will be stored in an uknown format -> likely as a python 2d list 
-
-#3) Initialize the global variables that may be needed for this algorithm
-    #i) graph, start_time
-    #ii) non global vars car1time, car2time, waitTime, CALocation, CBLocation      
-
-''' Tentative step (not sure if I should do this now) Not everything in step4 is in order  '''
-#4) Start the task by having each of the two "cars" choose the first two pickup requests, picking them up, then dropping them off
-''' Here a sorting algorithm will be given the STARTING and ENDING node '''
-''' It will the pickup time, travel to destination time, and total time '''
-    #i) Of note: I will assume both cars start at node 0 
-
-    #ii) In each Algorith, record down how long it took each car to 
-        #A) reach the passenger 
-        #B) Then seperatly how long it took to deliver them to the drop of location  
-        #C) In each ride add the time to pickup (ttp) to the continously current amount
-        #D) Record down how long it to complete the whole pickup and drop off task
-        #E) Finally record down the location that the car dopped its passengers off at     
-''' Initial case over, begin looping through all the different requests '''
-''' The pathing loop will be called twice for each request -> Path to reach pickup location, then to passenger destination '''
-    #iii) Compare the overall time it took each "car" to complete its run
-        #A) The Car with the lower overall time will take the next pickup request with the lowest time 
-        #B) Pass the starting and ending node to the pathing algorithm
-        #C) Pathing algorithm will return the time it took to rach the starting node to the destination node  
-        #D) Add the total time to the cars current concept of time 
-        #E) Add the wait time to the master wait time variable + time it took for uber to just respond to request
-        #F) Return the resting node of the "car" to its resting_car_location variable 
-        #G) Call pathing algorith again, this time for pickup -> dropoff, return same vars and perform same actions   
-
-    #IV) Check the current time of "car1" vs "car2" again choose car to perfrom next pickup based on lower "current time"   
-        #A) Repeat the process iii) with the new ride request 
-        
-    #V) Repeat the algorithm until all pickup requests have been fulfilled 
-        #A) return the overall time it took to complete all Runs, as well as total passenger wait time
-
-#5) Print out the results to the screen!
-    #i) Easy!                         
-
-
-
-#Imortant notes:
-    # When a car completes a "route" (ie responds to a pickup requests, pickups passenger, delivers passenger to dropp off location)
-    # The total wait time for the passenger is 
-        #i) The time it took for the uber to aknowledge the pickup request (uber current time - pickup request time)
-        #ii) + the time it took for the uber to reach the passenger
-
-    # The total wait time for passengers will build up if the pathing algorithm is efficient, 
-    # Since the more time spent drving means more requests will build up over time.     
-
-
-
-##########################################QUESTIONS##################################
-
-#1) What Pathing algorithm should we use? 
-#2) How do we represent the data in a form the pathing algorith can understand? 
-#3) How can we make the algorithm even more efficient -> decrease wait times (Assuming algo works)
-    #i) Dont necessarly choose cars for trips based on availability, maybe on proximity to pickup location?
-#4) How will we divide this algorithm up in terms of functions
-
-##########################################END QUESTIONS###############################    
-
-
-
-
-############################################RANDOM CODE###############################
-
-'''
-def heuristic(a, b):
-    (x1, y1) = a
-    (x2, y2) = b
-    return abs(x1 - x2) + abs(y1 - y2)
-
-def a_star_search(graph, start, goal):
-    frontier = PriorityQueue()
-    frontier.put(start, 0)
-    came_from = {}
-    cost_so_far = {}
-    came_from[start] = None
-    cost_so_far[start] = 0
-    
-    while not frontier.empty():
-        current = frontier.get()
-        
-        if current == goal:
-            break
-        
-        for next in graph.neighbors(current):
-            new_cost = cost_so_far[current] + graph.cost(current, next)
-            if next not in cost_so_far or new_cost < cost_so_far[next]:
-                cost_so_far[next] = new_cost
-                priority = new_cost + heuristic(goal, next)
-                frontier.put(next, priority)
-                came_from[next] = current
-    
-    return came_from, cost_so_far
 '''
