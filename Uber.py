@@ -14,8 +14,8 @@ import sys
 import math
 
 #########################################GOLBAL VARIABLES############################
-target_noder = 10
-noder_distance = 0
+target_node = 0
+node_distance = 0
 
 
 #will now try to outline how the algorithm will work
@@ -38,11 +38,23 @@ def readNetworkFile(filename):
     #print (m)
     return df
 
+
+#This function jerry rigs the dijkstras algo to return the dist from orig to target node
+def useDikstras(start_loc, end_loc):
+    #Intialize golbal variables used in function
+    global target_node
+    global node_distance
+
+    target_node = end_loc    # Set Global value for end location
+    g.dijkstra(start_loc)     # call dikstras algorithm with start loc
+    dist = node_distance     # save global distance var to local var
+    return dist         # return local var
+ 
+
 #This function will compute the A* Algorithm / be the main function from which A* Operates
 #It will return the time it took to reach node A from node B 
 #def AStarAlgo():
 #    ho = 5
-
 class Graph():
  
     def __init__(self, vertices):
@@ -59,13 +71,13 @@ class Graph():
         self.par = [-1] * self.V  # To store the path                      
  
     def printSolution(self, dist):
-        global target_noder
-        global noder_distance
+        global target_node
+        global node_distance
         print ("Vertex tDistance from Source")
         for node in range(self.V):
-            print (node,"t",dist[node])
-            if(node == 10):
-                noder_distance = dist[node]
+            #print (node,"t",dist[node])
+            if(node == target_node):
+                node_distance = dist[node]
  
     # A utility function to find the vertex with 
     # minimum distance value, from the set of vertices 
@@ -144,7 +156,6 @@ class Graph():
         print('\nTotal cost of path: ', cost)        
 
 def mainAlgo(start_location, end_location, pickup_time):
-    stuff = 0
 
     car1_location = 0
     car2_location = 0
@@ -152,19 +163,46 @@ def mainAlgo(start_location, end_location, pickup_time):
     car2_time = 0
     tot_wait_time = 0
     pickups_completed = len(pickup_time)
+    i = 0
 
+    #or when i = pickups_completed
     while (pickups_completed != 0):
 
         #Section for case where the next pickup request time is greater than both cars current time
+        if(pickup_time[i] >  car1_time and pickup_time[i] > car2_time):
+            car1_dist = useDikstras(0, start_location[i])
+            car2_dist = useDikstras(0, start_location[i])
 
+            if(car1_dist <= car2_dist):
+                car1_location = start_location[i]
+                car1_time += car1_dist
+                car1_dist = useDikstras(start_location[i], end_location[i])
+            else:
+                car2_location = start_location[i]
+                car2_time += car2_dist
+
+            i+=1      
 
 
         #section where only one cars current time is less than next pickup request time
+        elif(pickup_time[i] > car1_time and pickup_time[i] < car2_time):
+            ya = 5
 
 
+        elif(pickup_time[i] < car1_time and pickup_time[i] > car2_time):
+            wo = 4    
 
         #section where both cars current time is greater than the next pickup time
-            #Choose the car with the lower current time as pickup car 
+            #Choose the car with the lower current time as pickup car
+        else:
+
+            if(car1_time <= car2_time):
+                #dikstras car 1
+                ya = 1
+
+            else:
+                #dikstras car 2
+                bi = 2 
 
 
 
@@ -188,7 +226,7 @@ def mainAlgo(start_location, end_location, pickup_time):
 ###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
 network = readNetworkFile("network.csv")
-print(network)
+#print(network)
 #print([0][0])
 
 start_location, end_location, pickup_time = readRequestsFile("requests.csv")
@@ -210,15 +248,24 @@ g.graph = network
             [0, 0, 2, 0, 0, 0, 6, 7, 0]
             ]'''
     
-g.dijkstra(0)
-print("distance from 0 to ",target_noder," is ",noder_distance)
+#g.dijkstra(0)
+#print("distance from 0 to ",target_node," is ",node_distance)
 #g.show_path(0,10)
 
+blah = useDikstras(3,11)
+print("distance from 1 to ",target_node," is ", blah)
 
-time_waiting = mainAlgo(start_location, end_location, pickup_time)
-print(time_waiting)
+#time_waiting = mainAlgo(start_location, end_location, pickup_time)
+#print(time_waiting)
 
 ###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
+
+
+
+
+
+
+
 
 
 #######################OUTLINING ALGORITHM###############
