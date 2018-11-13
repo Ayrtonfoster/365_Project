@@ -23,10 +23,10 @@ node_distance = 0
 
 #This function will take the data from the teh requests.csv and returns all three columns as lists
 def readRequestsFile(filename):
-    df = pd.read_csv(filename, names=['start', 'end', 'timestamp'])
+    df = pd.read_csv(filename, names=['timestamp', 'start', 'end'])
+    pickup_time = df.timestamp 
     start_location = df.start
     end_location = df.end
-    pickup_time = df.timestamp
     return start_location, end_location, pickup_time
 
 
@@ -73,7 +73,7 @@ class Graph():
     def printSolution(self, dist):
         global target_node
         global node_distance
-        print ("Vertex tDistance from Source")
+        #print ("Vertex tDistance from Source")
         for node in range(self.V):
             #print (node,"t",dist[node])
             if(node == target_node):
@@ -166,61 +166,90 @@ def mainAlgo(start_location, end_location, pickup_time):
     i = 0
 
     #or when i = pickups_completed
-    while (pickups_completed != 0):
+    while (i < pickups_completed):
 
         #Section for case where the next pickup request time is greater than both cars current time
         if(pickup_time[i] >  car1_time and pickup_time[i] > car2_time):
-            car1_dist = useDikstras(0, start_location[i])                             #Find the distance from car 1 to the pickup location
-            car2_dist = useDikstras(0, start_location[i])                             #Find the distance from car 2 to the pickup location
+            car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
 
             #If Car1 is closer to the pickup location than car 2
             if(car1_dist <= car2_dist):
-                car1_location = start_location[i]                                  #update the cars current location 
-                car1_time += pickup_time[i]                                        #Set the fact that the car had to wait until the pickup was requested to move 
+                #car1_location = start_location[i]                                  #update the cars current location 
+                car1_time += (pickup_time[i] - car1_time)                          #Set the fact that the car had to wait until the pickup was requested to move 
                 car1_time += car1_dist                                             #Update the cars current time given travel to pickup location 
                 tot_wait_time += car1_dist                                         #Update the tot time passengers are waiting for pickup  
-                car1_dist = useDikstras(start_location[i], end_location[i])        #Use Dijkstras to find distance from pickup location to drop off location
+                car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)        #Use Dijkstras to find distance from pickup location to drop off location
                 car1_time += car1_dist                                             #Update the cars current time given travel to drop off location 
+                car1_location = end_location[i]-1                                    #update the cars current location gieb the drop off 
             else:
-                car2_location = start_location[i]                                  #update the cars current location 
-                car2_time += pickup_time[i]                                        #Set the fact that the car had to wait until the pickup was requested to move 
+                #car2_location = start_location[i]                                  #update the cars current location 
+                car2_time += (pickup_time[i] - car1_time)                          #Set the fact that the car had to wait until the pickup was requested to move 
                 car2_time += car2_dist                                             #Update the cars current time given travel to pickup location 
                 tot_wait_time += car2_dist                                         #Update the tot time passengers are waiting for pickup  
-                car2_dist = useDikstras(start_location[i], end_location[i])        #Use Dijkstras to find distance from pickup location to drop off location
+                car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)        #Use Dijkstras to find distance from pickup location to drop off location
                 car2_time += car2_dist                                             #Update the cars current time given travel to drop off location 
+                car2_location = end_location[i]-1                                    #update the cars current location gieb the drop off 
+                
 
-            #update the current index of next job that needs to be taken 
-            i+=1      
+            i+=1                         #update the current index of next job that needs to be taken 
 
 
         #section where only one cars current time is less than next pickup request time
-        elif(pickup_time[i] > car1_time and pickup_time[i] < car2_time):
-            ya = 5
+        #When car 1's current time is before next pickup, and car 2 is after
+        elif(pickup_time[i] >= car1_time and pickup_time[i] <= car2_time):
+            car1_dist = useDikstras(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
+            car1_time += ((pickup_time[i]-1) - car1_time)                             #Take into account time car1 must wait for pickup request  
+            car1_time += car1_dist                                                #Add time required for car1 t reach pickup to cars time  
+            tot_wait_time += car1_dist                                            #Add time it took for car to reach passenger to tot_wait_time
+            car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
+            car1_time += car1_dist                                                #Add time take to reach destination to car1 time  
+            car1_location = end_location[i] -1                                       #Set car1's location to the drop off location 
+            i+=1 
 
 
-        elif(pickup_time[i] < car1_time and pickup_time[i] > car2_time):
-            wo = 4    
+        #When car 2's current time is before next pickup, and car 1 is after        
+        elif(pickup_time[i] <= car1_time and pickup_time[i] >= car2_time):
+            car2_dist = useDikstras(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
+            car2_time += (pickup_time[i] - car2_time)                             #Take into account time car2 must wait for pickup request  
+            car2_time += car2_dist                                                #Add time required for car2 t reach pickup to cars time  
+            tot_wait_time += car2_dist                                            #Add time it took for car to reach passenger to tot_wait_time
+            car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
+            car2_time += car2_dist                                                #Add time take to reach destination to car2 time  
+            car2_location = end_location[i]-1                                       #Set car2's location to the drop off location 
+            i+=1  
 
         #section where both cars current time is greater than the next pickup time
             #Choose the car with the lower current time as pickup car
         else:
+            #car1_dist = useDikstras(car1_location, start_location[i])                             #Find the distance from car 1 to the pickup location
+            #car2_dist = useDikstras(car2_location, start_location[i])             
 
             if(car1_time <= car2_time):
                 #dikstras car 1
-                ya = 1
+                car1_dist = useDikstras(car1_location, start_location[i]-1)                   #Find the distance from car 1 to the pickup location
+                #car1_time += (pickup_time[i] - car1_time)                                  #Take into account time car1 must wait for pickup request 
+                car1_time += car1_dist                                                      #Add time required for car1 t reach pickup to cars time  
+                tot_wait_time += car1_dist                                                  #Add time it took for car to reach passenger to tot_wait_time
+                car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
+                car1_time += car1_dist                                                      #Add time take to reach destination to car1 time  
+                car1_location = end_location[i]-1                                             #Set car1's location to the drop off location 
 
             else:
                 #dikstras car 2
-                bi = 2 
+                car2_dist = useDikstras(car2_location, start_location[i]-1)             
+                #car2_time += (pickup_time[i] - car2_time)                                  #Take into account time car1 must wait for pickup request 
+                car2_time += car2_dist                                                      #Add time required for car1 t reach pickup to cars time  
+                tot_wait_time += car2_dist                                                  #Add time it took for car to reach passenger to tot_wait_time
+                car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
+                car2_time += car2_dist                                                      #Add time take to reach destination to car1 time  
+                car2_location = end_location[i]-1                                             #Set car1's location to the drop off location 
 
-
-
-
-
-
-
-
-
+            i+=1 
+        
+        #print("car ride ",i," completed, tot_wait_time ", tot_wait_time)       
+        print("car ride ",i," completed")                                                                               #update the current index of next job that needs to be taken 
+                                                                        #update the current index of next job that needs to be taken 
 
     return tot_wait_time
 
@@ -239,8 +268,8 @@ network = readNetworkFile("network.csv")
 #print([0][0])
 
 start_location, end_location, pickup_time = readRequestsFile("requests.csv")
-#print(start_time)
-#print(end_time)
+#print(start_location)
+#print(end_location)
 #print(pickup_time)
 
 # Driver program
@@ -261,11 +290,11 @@ g.graph = network
 #print("distance from 0 to ",target_node," is ",node_distance)
 #g.show_path(0,10)
 
-blah = useDikstras(3,11)
-print("distance from 1 to ",target_node," is ", blah)
+#blah = useDikstras(8,46)
+#print("distance from 8 to ",target_node," is ", blah)
 
-#time_waiting = mainAlgo(start_location, end_location, pickup_time)
-#print(time_waiting)
+time_waiting = mainAlgo(start_location, end_location, pickup_time)
+print(time_waiting)
 
 ###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
