@@ -2,6 +2,12 @@
 #11/03/18
 #Ayrton Foster 
 
+#Checklist of stuff I can improve in the current working algorithm 
+#[]: Use A* or Similar Algorith instead of Dijkstras Algorithm
+#[]: Save previous results so that they don't need to be recalculated -> maybe in a 2d matrix
+#[]: More efficient assignment of car to passenger if one car is busy and other is not
+#[]: Ability for Uber cars to see into future!?!? (see next stop)
+
 #Start uber!
 from collections import namedtuple
 import csv
@@ -14,11 +20,12 @@ import sys
 import math
 
 #########################################GOLBAL VARIABLES############################
+
+#These are the global variables used in use Dijkstras  
 target_node = 0
 node_distance = 0
 
-
-#will now try to outline how the algorithm will work
+#########################################GOLBAL VARIABLES############################
 
 
 #This function will take the data from the teh requests.csv and returns all three columns as lists
@@ -55,6 +62,7 @@ def useDikstras(start_loc, end_loc):
 #It will return the time it took to reach node A from node B 
 #def AStarAlgo():
 #    ho = 5
+
 class Graph():
  
     def __init__(self, vertices):
@@ -126,37 +134,11 @@ class Graph():
 
         #if (node == 10):
         #    return dist[node]
-        self.printSolution(dist)
-
-
-    def show_path(self, src, dest):
-        # To show the shortest path from src to dest
-        # WARNING: Use it *after* calling dijkstra
-        path = []
-        cost = 0
-        temp = dest
-        # Backtracking from dest to src
-        while self.par[temp] != -1:
-            path.append(temp)
-            if temp != src:
-                for v, w in self.adjList[temp]:
-                    if v == self.par[temp]:
-                        cost += w
-                        break
-            temp = self.par[temp]
-        path.append(src)
-        path.reverse()
-
-        print('----Path to reach {} from {}----'.format(dest, src))
-        for u in path:
-            print('{}'.format(u), end=' ')
-            if u != dest:
-                print('-> ', end='')
-
-        print('\nTotal cost of path: ', cost)        
+        self.printSolution(dist)       
 
 def mainAlgo(start_location, end_location, pickup_time):
 
+    #Initiate main varibles used inthe function 
     car1_location = 0
     car2_location = 0
     car1_time = 0
@@ -164,6 +146,8 @@ def mainAlgo(start_location, end_location, pickup_time):
     tot_wait_time = 0
     pickups_completed = len(pickup_time)
     i = 0
+
+    #OF IMPORTANCE: I have to do startlocation[i] -1 because my node indexes start at 0 - 49 not 1 - 50 
 
     #or when i = pickups_completed
     while (i < pickups_completed):
@@ -176,20 +160,20 @@ def mainAlgo(start_location, end_location, pickup_time):
             #If Car1 is closer to the pickup location than car 2
             if(car1_dist <= car2_dist):
                 #car1_location = start_location[i]                                  #update the cars current location 
-                car1_time += (pickup_time[i] - car1_time)                          #Set the fact that the car had to wait until the pickup was requested to move 
-                car1_time += car1_dist                                             #Update the cars current time given travel to pickup location 
-                tot_wait_time += car1_dist                                         #Update the tot time passengers are waiting for pickup  
-                car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)        #Use Dijkstras to find distance from pickup location to drop off location
-                car1_time += car1_dist                                             #Update the cars current time given travel to drop off location 
-                car1_location = end_location[i]-1                                    #update the cars current location gieb the drop off 
+                car1_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
+                car1_time += car1_dist                                              #Update the cars current time given travel to pickup location 
+                tot_wait_time += car1_dist                                          #Update the tot time passengers are waiting for pickup  
+                car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                car1_time += car1_dist                                              #Update the cars current time given travel to drop off location 
+                car1_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
             else:
                 #car2_location = start_location[i]                                  #update the cars current location 
-                car2_time += (pickup_time[i] - car1_time)                          #Set the fact that the car had to wait until the pickup was requested to move 
-                car2_time += car2_dist                                             #Update the cars current time given travel to pickup location 
-                tot_wait_time += car2_dist                                         #Update the tot time passengers are waiting for pickup  
-                car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)        #Use Dijkstras to find distance from pickup location to drop off location
-                car2_time += car2_dist                                             #Update the cars current time given travel to drop off location 
-                car2_location = end_location[i]-1                                    #update the cars current location gieb the drop off 
+                car2_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
+                car2_time += car2_dist                                              #Update the cars current time given travel to pickup location 
+                tot_wait_time += car2_dist                                          #Update the tot time passengers are waiting for pickup  
+                car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                car2_time += car2_dist                                              #Update the cars current time given travel to drop off location 
+                car2_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
                 
 
             i+=1                         #update the current index of next job that needs to be taken 
