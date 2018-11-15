@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys 
 import math
+import tqdm 
 
 #########################################GOLBAL VARIABLES############################
 
@@ -146,9 +147,11 @@ def mainAlgo(start_location, end_location, pickup_time):
 
     #OF IMPORTANCE: I have to do startlocation[i] -1 because my node indexes start at 0 - 49 not 1 - 50 
 
+    #pbar = tqdm(total = 300)
     #or when i = pickups_completed
     while (i < pickups_completed):
-
+        #car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+        #car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
         #Section for case where the next pickup request time is greater than both cars current time
         if(pickup_time[i] >  car1_time and pickup_time[i] > car2_time):
             car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
@@ -179,7 +182,7 @@ def mainAlgo(start_location, end_location, pickup_time):
 
         #section where only one cars current time is less than next pickup request time
         #When car 1's current time is before next pickup, and car 2 is after
-        elif(pickup_time[i] >= car1_time and pickup_time[i] <= car2_time):
+        elif(pickup_time[i] >= car1_time and pickup_time[i] < car2_time):
             car1_dist = useDikstras(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
             #car1_time += ((pickup_time[i]) - car1_time)                             #Take into account time car1 must wait for pickup request  
             car1_time = pickup_time[i]
@@ -192,7 +195,7 @@ def mainAlgo(start_location, end_location, pickup_time):
 
 
         #When car 2's current time is before next pickup, and car 1 is after        
-        elif(pickup_time[i] <= car1_time and pickup_time[i] >= car2_time):
+        elif(pickup_time[i] < car1_time and pickup_time[i] >= car2_time):
             car2_dist = useDikstras(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
             #car2_time += (pickup_time[i] - car2_time)                             #Take into account time car2 must wait for pickup request  
             car2_time = pickup_time[i]                            
@@ -206,8 +209,8 @@ def mainAlgo(start_location, end_location, pickup_time):
         #section where both cars current time is greater than the next pickup time
             #Choose the car with the lower current time as pickup car
         else:
-            #car1_dist = useDikstras(car1_location, start_location[i])                             #Find the distance from car 1 to the pickup location
-            #car2_dist = useDikstras(car2_location, start_location[i])             
+            car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            car2_dist = useDikstras(car2_location, start_location[i]-1)             
 
             #if(car1_time <= car2_time):
             #if(car1_dist <= car2_dist):
@@ -234,7 +237,7 @@ def mainAlgo(start_location, end_location, pickup_time):
             i+=1 
         
         #print("car ride ",i," completed, tot_wait_time ", tot_wait_time)       
-        print("car ride ",i," completed")                                                                               #update the current index of next job that needs to be taken 
+        #print("car ride ",i," completed")                                                                               #update the current index of next job that needs to be taken 
                                                                         #update the current index of next job that needs to be taken 
 
     return tot_wait_time
