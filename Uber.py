@@ -40,9 +40,6 @@ def readRequestsFile(filename):
 #This function will take the data from data from network.csv 
 def readNetworkFile(filename): 
     df = pd.read_csv(filename, header=None)
-    #m = df.unstack()
-    #m = m.fillna(0)
-    #print (m)
     return df
 
 
@@ -160,7 +157,8 @@ def mainAlgo(start_location, end_location, pickup_time):
             #If Car1 is closer to the pickup location than car 2
             if(car1_dist <= car2_dist):
                 #car1_location = start_location[i]                                  #update the cars current location 
-                car1_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
+                #car1_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
+                car1_time = pickup_time[i]
                 car1_time += car1_dist                                              #Update the cars current time given travel to pickup location 
                 tot_wait_time += car1_dist                                          #Update the tot time passengers are waiting for pickup  
                 car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
@@ -168,7 +166,8 @@ def mainAlgo(start_location, end_location, pickup_time):
                 car1_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
             else:
                 #car2_location = start_location[i]                                  #update the cars current location 
-                car2_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
+                #car2_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
+                car2_time = pickup_time[i]                
                 car2_time += car2_dist                                              #Update the cars current time given travel to pickup location 
                 tot_wait_time += car2_dist                                          #Update the tot time passengers are waiting for pickup  
                 car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
@@ -183,7 +182,8 @@ def mainAlgo(start_location, end_location, pickup_time):
         #When car 1's current time is before next pickup, and car 2 is after
         elif(pickup_time[i] >= car1_time and pickup_time[i] <= car2_time):
             car1_dist = useDikstras(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
-            car1_time += ((pickup_time[i]-1) - car1_time)                             #Take into account time car1 must wait for pickup request  
+            #car1_time += ((pickup_time[i]) - car1_time)                             #Take into account time car1 must wait for pickup request  
+            car1_time = pickup_time[i]
             car1_time += car1_dist                                                #Add time required for car1 t reach pickup to cars time  
             tot_wait_time += car1_dist                                            #Add time it took for car to reach passenger to tot_wait_time
             car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
@@ -195,7 +195,8 @@ def mainAlgo(start_location, end_location, pickup_time):
         #When car 2's current time is before next pickup, and car 1 is after        
         elif(pickup_time[i] <= car1_time and pickup_time[i] >= car2_time):
             car2_dist = useDikstras(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
-            car2_time += (pickup_time[i] - car2_time)                             #Take into account time car2 must wait for pickup request  
+            #car2_time += (pickup_time[i] - car2_time)                             #Take into account time car2 must wait for pickup request  
+            car2_time = pickup_time[i]                            
             car2_time += car2_dist                                                #Add time required for car2 t reach pickup to cars time  
             tot_wait_time += car2_dist                                            #Add time it took for car to reach passenger to tot_wait_time
             car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
@@ -213,8 +214,8 @@ def mainAlgo(start_location, end_location, pickup_time):
                 #dikstras car 1
                 car1_dist = useDikstras(car1_location, start_location[i]-1)                   #Find the distance from car 1 to the pickup location
                 #car1_time += (pickup_time[i] - car1_time)                                  #Take into account time car1 must wait for pickup request 
+                tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time
                 car1_time += car1_dist                                                      #Add time required for car1 t reach pickup to cars time  
-                tot_wait_time += car1_dist                                                  #Add time it took for car to reach passenger to tot_wait_time
                 car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
                 car1_time += car1_dist                                                      #Add time take to reach destination to car1 time  
                 car1_location = end_location[i]-1                                             #Set car1's location to the drop off location 
@@ -223,8 +224,8 @@ def mainAlgo(start_location, end_location, pickup_time):
                 #dikstras car 2
                 car2_dist = useDikstras(car2_location, start_location[i]-1)             
                 #car2_time += (pickup_time[i] - car2_time)                                  #Take into account time car1 must wait for pickup request 
+                tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time                
                 car2_time += car2_dist                                                      #Add time required for car1 t reach pickup to cars time  
-                tot_wait_time += car2_dist                                                  #Add time it took for car to reach passenger to tot_wait_time
                 car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
                 car2_time += car2_dist                                                      #Add time take to reach destination to car1 time  
                 car2_location = end_location[i]-1                                             #Set car1's location to the drop off location 
