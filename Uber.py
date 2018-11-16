@@ -89,14 +89,20 @@ class Graph():
         self.dist = [0] * self.V
         self.par = [-1] * self.V  # To store the path                      
  
-    def printSolution(self, dist):
+    def printSolution(self, dist, src):
         global target_node
         global node_distance
+        global known_paths
         #print ("Vertex tDistance from Source")
         for node in range(self.V):
+            known_paths[src][node] = dist[node]
+            known_paths[node][src] = dist[node]
             #print (node,"t",dist[node])
-            if(node == target_node):
-                node_distance = dist[node]
+            #print(self.V)
+            #if(node == target_node):
+                #node_distance = dist[node]
+
+        node_distance = dist[target_node]        
  
     # A utility function to find the vertex with 
     # minimum distance value, from the set of vertices 
@@ -145,7 +151,7 @@ class Graph():
 
         #if (node == 10):
         #    return dist[node]
-        self.printSolution(dist)       
+        self.printSolution(dist, src)       
 
 def mainAlgo(start_location, end_location, pickup_time):
 
@@ -277,6 +283,7 @@ network = readNetworkFile("network.csv")
 #print([0][0])
 
 start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+#start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
 #print(start_location)
 #print(end_location)
 #print(pickup_time)
