@@ -28,6 +28,8 @@ from tqdm import tqdm
 target_node = 0
 node_distance = 0
 
+known_paths = [[0 for x in range(50)] for y in range(50)]
+
 #########################################GOLBAL VARIABLES############################
 
 
@@ -57,7 +59,16 @@ def useDikstras(start_loc, end_loc):
     dist = node_distance     # save global distance var to local var
     return dist         # return local var
  
+def shortestPath(start_loc, end_loc):
+    global known_paths
 
+    if (known_paths[start_loc][end_loc] != 0):
+        return known_paths[start_loc][end_loc]
+    else:
+        dist = useDikstras(start_loc, end_loc)
+        known_paths[start_loc][end_loc] = dist
+        known_paths[end_loc][start_loc] = dist
+        return dist
 #This function will compute the A* Algorithm / be the main function from which A* Operates
 #It will return the time it took to reach node A from node B 
 #def AStarAlgo():
@@ -157,8 +168,12 @@ def mainAlgo(start_location, end_location, pickup_time):
         #car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
         #Section for case where the next pickup request time is greater than both cars current time
         if(pickup_time[i] >  car1_time and pickup_time[i] > car2_time):
-            car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
-            car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
+            #car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            #car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
+            
+            car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            car2_dist = shortestPath(car2_location, start_location[i]-1)
+
 
             #If Car1 is closer to the pickup location than car 2
             if(car1_dist <= car2_dist):
@@ -167,7 +182,8 @@ def mainAlgo(start_location, end_location, pickup_time):
                 car1_time = pickup_time[i]
                 car1_time += car1_dist                                              #Update the cars current time given travel to pickup location 
                 tot_wait_time += car1_dist                                          #Update the tot time passengers are waiting for pickup  
-                car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                #car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
                 car1_time += car1_dist                                              #Update the cars current time given travel to drop off location 
                 car1_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
             else:
@@ -176,7 +192,8 @@ def mainAlgo(start_location, end_location, pickup_time):
                 car2_time = pickup_time[i]                
                 car2_time += car2_dist                                              #Update the cars current time given travel to pickup location 
                 tot_wait_time += car2_dist                                          #Update the tot time passengers are waiting for pickup  
-                car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                #car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                car2_dist = shortestPath(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
                 car2_time += car2_dist                                              #Update the cars current time given travel to drop off location 
                 car2_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
                 
@@ -186,12 +203,12 @@ def mainAlgo(start_location, end_location, pickup_time):
         #section where only one cars current time is less than next pickup request time
         #When car 1's current time is before next pickup, and car 2 is after
         elif(pickup_time[i] >= car1_time and pickup_time[i] < car2_time):
-            car1_dist = useDikstras(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
+            car1_dist = shortestPath(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
             #car1_time += ((pickup_time[i]) - car1_time)                             #Take into account time car1 must wait for pickup request  
             car1_time = pickup_time[i]
             car1_time += car1_dist                                                #Add time required for car1 t reach pickup to cars time  
             tot_wait_time += car1_dist                                            #Add time it took for car to reach passenger to tot_wait_time
-            car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
+            car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
             car1_time += car1_dist                                                #Add time take to reach destination to car1 time  
             car1_location = end_location[i] -1                                       #Set car1's location to the drop off location 
             i+=1 
@@ -199,12 +216,12 @@ def mainAlgo(start_location, end_location, pickup_time):
 
         #When car 2's current time is before next pickup, and car 1 is after        
         elif(pickup_time[i] < car1_time and pickup_time[i] >= car2_time):
-            car2_dist = useDikstras(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
+            car2_dist = shortestPath(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
             #car2_time += (pickup_time[i] - car2_time)                             #Take into account time car2 must wait for pickup request  
             car2_time = pickup_time[i]                            
             car2_time += car2_dist                                                #Add time required for car2 t reach pickup to cars time  
             tot_wait_time += car2_dist                                            #Add time it took for car to reach passenger to tot_wait_time
-            car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
+            car2_dist = shortestPath(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
             car2_time += car2_dist                                                #Add time take to reach destination to car2 time  
             car2_location = end_location[i]-1                                       #Set car2's location to the drop off location 
             i+=1  
@@ -212,28 +229,28 @@ def mainAlgo(start_location, end_location, pickup_time):
         #section where both cars current time is greater than the next pickup time
             #Choose the car with the lower current time as pickup car
         else:
-            car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
-            car2_dist = useDikstras(car2_location, start_location[i]-1)             
+            car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            car2_dist = shortestPath(car2_location, start_location[i]-1)             
 
             #if(car1_time <= car2_time):
             #if(car1_dist <= car2_dist):
             if((car1_time + car1_dist) <= (car2_time + car2_dist)):
                 #dikstras car 1
-                car1_dist = useDikstras(car1_location, start_location[i]-1)                   #Find the distance from car 1 to the pickup location
+                car1_dist = shortestPath(car1_location, start_location[i]-1)                   #Find the distance from car 1 to the pickup location
                 #car1_time += (pickup_time[i] - car1_time)                                  #Take into account time car1 must wait for pickup request 
                 tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time
                 car1_time += car1_dist                                                      #Add time required for car1 t reach pickup to cars time  
-                car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
+                car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
                 car1_time += car1_dist                                                      #Add time take to reach destination to car1 time  
                 car1_location = end_location[i]-1                                             #Set car1's location to the drop off location 
 
             else:
                 #dikstras car 2
-                car2_dist = useDikstras(car2_location, start_location[i]-1)             
+                car2_dist = shortestPath(car2_location, start_location[i]-1)             
                 #car2_time += (pickup_time[i] - car2_time)                                  #Take into account time car1 must wait for pickup request 
                 tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time                
                 car2_time += car2_dist                                                      #Add time required for car1 t reach pickup to cars time  
-                car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
+                car2_dist = shortestPath(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
                 car2_time += car2_dist                                                      #Add time take to reach destination to car1 time  
                 car2_location = end_location[i]-1                                             #Set car1's location to the drop off location 
 
@@ -284,6 +301,11 @@ g.graph = network
 
 #blah = useDikstras(8,46)
 #print("distance from 8 to ",target_node," is ", blah)
+
+#distance = shortestPath(8, 46)
+#print(distance)
+#distance = shortestPath(8, 46)
+#print(distance)
 
 time_waiting = mainAlgo(start_location, end_location, pickup_time)
 print(time_waiting)
