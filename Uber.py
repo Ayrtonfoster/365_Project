@@ -5,7 +5,9 @@
 #Checklist of stuff I can improve in the current working algorithm 
 #[]: Use A* or Similar Algorith instead of Dijkstras Algorithm
 #[]: Save previous results so that they don't need to be recalculated -> maybe in a 2d matrix
-#[]: More efficient assignment of car to passenger if one car is busy and other is not
+    #->[]: make a 2d list of lists as golbal var, in each iteration of the algo, check whether than distance has been calculated yet
+    #->[]: Initially check just path comeplted, but later every path that was calculated in djikstras.
+#[x]: More efficient assignment of car to passenger if one car is busy and other is not
 #[]: Ability for Uber cars to see into future!?!? (see next stop)
 
 #Start uber!
@@ -18,7 +20,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys 
 import math
-import tqdm 
+from tqdm import tqdm
 
 #########################################GOLBAL VARIABLES############################
 
@@ -149,7 +151,8 @@ def mainAlgo(start_location, end_location, pickup_time):
 
     #pbar = tqdm(total = 300)
     #or when i = pickups_completed
-    while (i < pickups_completed):
+    for i in tqdm(range(300)):
+    #while (i < pickups_completed):
         #car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
         #car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
         #Section for case where the next pickup request time is greater than both cars current time
