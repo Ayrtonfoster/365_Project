@@ -4,9 +4,9 @@
 
 #Checklist of stuff I can improve in the current working algorithm 
 #[]: Use A* or Similar Algorith instead of Dijkstras Algorithm
-#[]: Save previous results so that they don't need to be recalculated -> maybe in a 2d matrix
-    #->[]: make a 2d list of lists as golbal var, in each iteration of the algo, check whether than distance has been calculated yet
-    #->[]: Initially check just path comeplted, but later every path that was calculated in djikstras.
+#[x]: Save previous results so that they don't need to be recalculated -> maybe in a 2d matrix
+    #->[x]: make a 2d list of lists as golbal var, in each iteration of the algo, check whether than distance has been calculated yet
+    #->[x]: Initially check just path comeplted, but later every path that was calculated in djikstras.
 #[x]: More efficient assignment of car to passenger if one car is busy and other is not
 #[]: Ability for Uber cars to see into future!?!? (see next stop)
 
@@ -168,65 +168,68 @@ def mainAlgo(start_location, end_location, pickup_time):
 
     #pbar = tqdm(total = 300)
     #or when i = pickups_completed
-    for i in tqdm(range(300)):
-    #while (i < pickups_completed):
-        #car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
-        #car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
-        #Section for case where the next pickup request time is greater than both cars current time
-        if(pickup_time[i] >  car1_time and pickup_time[i] > car2_time):
-            #car1_dist = useDikstras(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
-            #car2_dist = useDikstras(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
-            
-            car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
-            car2_dist = shortestPath(car2_location, start_location[i]-1)
+    #for i in tqdm(range(300)):
+    while (i < pickups_completed):
+        car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+        car2_dist = shortestPath(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
 
+        #Section for case where the next pickup request time is greater than both cars current time
+        #Neither car has a job they have to do at the moment. 
+        if(pickup_time[i] >=  car1_time and pickup_time[i] >= car2_time):
+            #car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            #car2_dist = shortestPath(car2_location, start_location[i]-1)
 
             #If Car1 is closer to the pickup location than car 2
             if(car1_dist <= car2_dist):
+            #if((car1_dist+car1_time) <= (car2_dist+car2_time)):
                 #car1_location = start_location[i]                                  #update the cars current location 
                 #car1_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
                 car1_time = pickup_time[i]
                 car1_time += car1_dist                                              #Update the cars current time given travel to pickup location 
-                tot_wait_time += car1_dist                                          #Update the tot time passengers are waiting for pickup  
-                #car1_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
-                car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                tot_wait_time += car1_dist                                          #Update the tot time passengers are waiting for pickup
+                #print("case 1 car1: ",car1_dist)  
+                car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)    #Use Dijkstras to find distance from pickup location to drop off location
                 car1_time += car1_dist                                              #Update the cars current time given travel to drop off location 
                 car1_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
+
             else:
                 #car2_location = start_location[i]                                  #update the cars current location 
                 #car2_time += (pickup_time[i] - car1_time)                           #Set the fact that the car had to wait until the pickup was requested to move 
                 car2_time = pickup_time[i]                
                 car2_time += car2_dist                                              #Update the cars current time given travel to pickup location 
                 tot_wait_time += car2_dist                                          #Update the tot time passengers are waiting for pickup  
-                #car2_dist = useDikstras(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
+                #print("case 2 car2: ",car2_dist)                  
                 car2_dist = shortestPath(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
                 car2_time += car2_dist                                              #Update the cars current time given travel to drop off location 
                 car2_location = end_location[i]-1                                   #update the cars current location gieb the drop off 
-                
-
-            i+=1                         #update the current index of next job that needs to be taken 
+        
+            i+=1
 
         #section where only one cars current time is less than next pickup request time
         #When car 1's current time is before next pickup, and car 2 is after
+        #elif(pickup_time[i] >= (car1_time+car1_dist) and pickup_time[i] < (car2_time+car2_dist)):
         elif(pickup_time[i] >= car1_time and pickup_time[i] < car2_time):
-            car1_dist = shortestPath(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
+            #car1_dist = shortestPath(car1_location, start_location[i]-1)             #Calculate time from car1 to pickup location  
             #car1_time += ((pickup_time[i]) - car1_time)                             #Take into account time car1 must wait for pickup request  
             car1_time = pickup_time[i]
             car1_time += car1_dist                                                #Add time required for car1 t reach pickup to cars time  
             tot_wait_time += car1_dist                                            #Add time it took for car to reach passenger to tot_wait_time
+            #print("case 3 car1: ",car1_dist)  
             car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
             car1_time += car1_dist                                                #Add time take to reach destination to car1 time  
             car1_location = end_location[i] -1                                       #Set car1's location to the drop off location 
             i+=1 
 
 
-        #When car 2's current time is before next pickup, and car 1 is after        
-        elif(pickup_time[i] < car1_time and pickup_time[i] >= car2_time):
-            car2_dist = shortestPath(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
+        #When car 2's current time is before next pickup, and car 1 is after
+        #elif(pickup_time[i] < (car1_time+car1_dist) and pickup_time[i] >= (car2_time+car2_dist)):
+        elif(pickup_time[i] < car1_time and pickup_time[i] >= car2_time):         
+            #car2_dist = shortestPath(car2_location, start_location[i]-1)             #Calculate time from car2 to pickup location  
             #car2_time += (pickup_time[i] - car2_time)                             #Take into account time car2 must wait for pickup request  
             car2_time = pickup_time[i]                            
             car2_time += car2_dist                                                #Add time required for car2 t reach pickup to cars time  
             tot_wait_time += car2_dist                                            #Add time it took for car to reach passenger to tot_wait_time
+            #print("case 4 car2: ",car2_dist)  
             car2_dist = shortestPath(start_location[i]-1, end_location[i]-1)           #Calculate time it takes for car to complate drop off  
             car2_time += car2_dist                                                #Add time take to reach destination to car2 time  
             car2_location = end_location[i]-1                                       #Set car2's location to the drop off location 
@@ -234,36 +237,41 @@ def mainAlgo(start_location, end_location, pickup_time):
 
         #section where both cars current time is greater than the next pickup time
             #Choose the car with the lower current time as pickup car
-        else:
-            car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
-            car2_dist = shortestPath(car2_location, start_location[i]-1)             
+        #else:    
+        elif(pickup_time[i] < car1_time and pickup_time[i] < car2_time):
+            #print(pickup_time[i], " car1 time: ",car1_time," car2 time: ",car2_time)
+            #car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
+            #car2_dist = shortestPath(car2_location, start_location[i]-1)
+             
 
             #if(car1_time <= car2_time):
             #if(car1_dist <= car2_dist):
             if((car1_time + car1_dist) <= (car2_time + car2_dist)):
-                #dikstras car 1
-                car1_dist = shortestPath(car1_location, start_location[i]-1)                   #Find the distance from car 1 to the pickup location
+                #car1_dist = shortestPath(car1_location, start_location[i]-1)                   #Find the distance from car 1 to the pickup location
                 #car1_time += (pickup_time[i] - car1_time)                                  #Take into account time car1 must wait for pickup request 
                 tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time
+                #print("case 5 car1: ",(car1_dist+(car1_time-pickup_time[i])))  
                 car1_time += car1_dist                                                      #Add time required for car1 t reach pickup to cars time  
                 car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
                 car1_time += car1_dist                                                      #Add time take to reach destination to car1 time  
                 car1_location = end_location[i]-1                                             #Set car1's location to the drop off location 
+                i+=1
 
             else:
-                #dikstras car 2
-                car2_dist = shortestPath(car2_location, start_location[i]-1)             
+                #car2_dist = shortestPath(car2_location, start_location[i]-1)             
                 #car2_time += (pickup_time[i] - car2_time)                                  #Take into account time car1 must wait for pickup request 
-                tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time                
+                tot_wait_time += (car2_dist + (car2_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time
+                #print("case 6 car2: ", (car2_dist+(car2_time-pickup_time[i])))  
                 car2_time += car2_dist                                                      #Add time required for car1 t reach pickup to cars time  
                 car2_dist = shortestPath(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
                 car2_time += car2_dist                                                      #Add time take to reach destination to car1 time  
                 car2_location = end_location[i]-1                                             #Set car1's location to the drop off location 
+                i+=1
+        else:
+            print(pickup_time[i], " car1 time: ",car1_time," car2 time: ",car2_time)
 
-            i+=1 
-        
         #print("car ride ",i," completed, tot_wait_time ", tot_wait_time)       
-        #print("car ride ",i," completed")                                                                               #update the current index of next job that needs to be taken 
+        print("car ride ",i," completed")                                                                               #update the current index of next job that needs to be taken 
                                                                         #update the current index of next job that needs to be taken 
 
     return tot_wait_time
@@ -282,8 +290,8 @@ network = readNetworkFile("network.csv")
 #print(network)
 #print([0][0])
 
-start_location, end_location, pickup_time = readRequestsFile("requests.csv")
-#start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
+#start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
 #print(start_location)
 #print(end_location)
 #print(pickup_time)
@@ -308,9 +316,10 @@ g.graph = network
 
 #blah = useDikstras(8,46)
 #print("distance from 8 to ",target_node," is ", blah)
-
-#distance = shortestPath(8, 46)
-#print(distance)
+'''origin = (1) - 1 
+destination = (40) -1
+distance = shortestPath(origin, destination)
+print("from ",origin+1," to",destination+1, " is ",distance)'''
 #distance = shortestPath(8, 46)
 #print(distance)
 
