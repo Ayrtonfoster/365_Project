@@ -10,16 +10,17 @@
 #[x]: More efficient assignment of car to passenger if one car is busy and other is not
 #[]: Ability for Uber cars to see into future!?!? (see next stop)
 
+import csv
+import math
+import random
+import sys
 #Start uber!
 from collections import namedtuple
-import csv
-import random
-from random import randint 
-import numpy as np
+from random import randint
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import sys 
-import math
 from tqdm import tqdm
 
 #########################################GOLBAL VARIABLES############################
@@ -27,7 +28,6 @@ from tqdm import tqdm
 #These are the global variables used in use Dijkstras  
 target_node = 0
 node_distance = 0
-
 known_paths = [[0 for x in range(50)] for y in range(50)]
 
 #########################################GOLBAL VARIABLES############################
@@ -59,6 +59,7 @@ def useDikstras(start_loc, end_loc):
     dist = node_distance     # save global distance var to local var
     return dist         # return local var
  
+#This function checks whether the shortest path desired has been calculated already  
 def shortestPath(start_loc, end_loc):
     global known_paths
 
@@ -75,6 +76,8 @@ def shortestPath(start_loc, end_loc):
 #def AStarAlgo():
 #    ho = 5
 
+#Dijkstras algorithm derived and moified from original algorithm found here
+#https://github.com/OpenGenus/cosmos/blob/master/code/graph_algorithms/src/dijkstra_shortest_path/Dijkstra.py
 class Graph():
  
     def __init__(self, vertices):
@@ -150,36 +153,34 @@ class Graph():
                 if (self.graph[u][v] > 0 and sptSet[v] == False and dist[v] > dist[u] + self.graph[u][v]):
                         dist[v] = dist[u] + self.graph[u][v]
 
-        #if (node == 10):
-        #    return dist[node]
         self.printSolution(dist, src)       
 
 
+#This function performs the update on a cars information after a decision regarding which car should pikcup the passenger has been made 
 def updateInfo1(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i):
-    car1_time = pickup_time[i]
-    car1_time += car1_dist                                               #Update the cars current time given travel to pickup location 
-    tot_wait_time += car1_dist                                           #Update the tot time passengers are waiting for pickup
-    #print("case 1 car1: ",car1_dist)  
-    car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)     #Use Dijkstras to find distance from pickup location to drop off location
-    car1_time += car1_dist                                               #Update the cars current time given travel to drop off location 
-    car1_location = end_location[i]-1 
-    i+=1    
-    return car1_time, tot_wait_time, car1_dist, car1_location, i 
+    car1_time = pickup_time[i]                                                  #Set the cars time to the current time -> wait until request is made before pickup   
+    car1_time += car1_dist                                                      #Update the cars current time given travel to pickup location 
+    tot_wait_time += car1_dist                                                  #Update the tot time passengers are waiting for pickup
+    car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)            #Use Dijkstras to find distance from pickup location to drop off location
+    car1_time += car1_dist                                                      #Update the cars current time given travel to drop off location 
+    car1_location = end_location[i]-1                                           #Set the cars current location to the drop off location
+    i+=1                                                                        #Increment counter to the next pickup request    
+    return car1_time, tot_wait_time, car1_dist, car1_location, i            
 
+#This function performs the update on a cars information after a decision regarding which car should pikcup the passenger has been made 
 def updateInfo2(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i):
-    tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                     #Add time it took for car to reach passenger to tot_wait_time
-    #print("case 5 car1: ",(car1_dist+(car1_time-pickup_time[i])))  
+    tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                   #Add time it took for car to reach passenger to tot_wait_time
     car1_time += car1_dist                                                      #Add time required for car1 t reach pickup to cars time  
-    car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)                 #Calculate time it takes for car to complate drop off  
+    car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)            #Calculate time it takes for car to complate drop off  
     car1_time += car1_dist                                                      #Add time take to reach destination to car1 time  
-    car1_location = end_location[i]-1                                             #Set car1's location to the drop off location 
-    i+=1    
+    car1_location = end_location[i]-1                                           #Set car1's location to the drop off location 
+    i+=1                                                                        #Increment counter to nect pickup requst 
     return car1_time, tot_wait_time, car1_dist, car1_location, i 
 
 
 def mainAlgo(start_location, end_location, pickup_time):
 
-    #Initiate main varibles used inthe function 
+    #Initiate main varibles used in the function, variable names are self explainatory  
     car1_location = 0
     car2_location = 0
     car1_time = 0
@@ -188,102 +189,73 @@ def mainAlgo(start_location, end_location, pickup_time):
     pickups_completed = len(pickup_time)
     i = 0
 
-    #for i in tqdm(range(300)):
+    #for i in tqdm(range(300)):                                                                  #To see a visual progress bar represent the progress of the algo
     while (i < pickups_completed):
         car1_dist = shortestPath(car1_location, start_location[i]-1)                             #Find the distance from car 1 to the pickup location
         car2_dist = shortestPath(car2_location, start_location[i]-1)                             #Find the distance from car 2 to the pickup location
-
-        #Neither car has a job they have to do at the moment. 
-        if(pickup_time[i] >=  car1_time and pickup_time[i] >= car2_time):
-
-            #If Car1 is closer to the pickup location than car 2
-            if(car1_dist <= car2_dist):
-            #if((car1_dist+car1_time) <= (car2_dist+car2_time)):
-                car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo1(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)
-
-            else:
-                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo1(car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
         
-        #section where only one cars current time is less than next pickup request time
-        #elif(pickup_time[i] >= (car1_time+car1_dist) and pickup_time[i] < (car2_time+car2_dist)):
-        elif(pickup_time[i] >= car1_time and pickup_time[i] < car2_time):
-            car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo1(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)            
+        if(car1_time <= pickup_time[i] and car2_time <= pickup_time[i]):
+            if(car1_dist <= car2_dist):
+                car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo1(
+                    car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)
+            else:
+                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo1(
+                    car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
 
+        elif(pickup_time[i] < car1_time and pickup_time[i] < car2_time):
+            if((car1_time + car1_dist) <= (car2_time + car2_dist)):
+                car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo2(
+                    car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)
+            else:
+                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo2(
+                    car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
+
+        elif(pickup_time[i] >= car1_time and pickup_time[i] < car2_time):
+            if (car1_dist + pickup_time[i] <= car2_dist + (car2_time - pickup_time[i]) + pickup_time[i]):
+                car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo1(
+                    car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)
+
+            elif(car1_dist + pickup_time[i] > car2_dist + (car2_time - pickup_time[i]) + pickup_time[i]):
+                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo2(
+                    car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
 
         #When car 2's current time is before next pickup, and car 1 is after
-        #elif(pickup_time[i] < (car1_time+car1_dist) and pickup_time[i] >= (car2_time+car2_dist)):
-        elif(pickup_time[i] < car1_time and pickup_time[i] >= car2_time):        
-            car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo1(car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
+        elif(pickup_time[i] < car1_time and pickup_time[i] >= car2_time):
+            if (car2_dist + pickup_time[i] <= car1_dist + (car1_time - pickup_time[i]) + pickup_time[i]):
+                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo1(
+                    car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
 
-        #section where both cars current time is greater than the next pickup time
-        #else:    
-        elif(pickup_time[i] < car1_time and pickup_time[i] < car2_time):
-
-            #if(car1_time <= car2_time):
-            #if(car1_dist <= car2_dist):
-            if((car1_time + car1_dist) <= (car2_time + car2_dist)):
-                car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo2(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)            
-
-            else:
-                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo2(car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)            
+            elif(car2_dist + pickup_time[i] > car1_dist + (car1_time - pickup_time[i]) + pickup_time[i]):
+                car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo2(
+                    car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
 
         else:
-            print(pickup_time[i], " car1 time: ",car1_time," car2 time: ",car2_time)
-
+            print("different case")
+          
+       
+        #print out the car ride # that teh algorithm is currently on 
         print("car ride ",i," completed")                                                                              
-                                                                     
 
+    #return the total wait time
     return tot_wait_time
-
-    
-
-####################################NEW CODE STUFF########################
-
-####################################END NEW CODE STUFF########################
-
 
 
 ###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
-network = readNetworkFile("network.csv")
-#print(network)
-#print([0][0])
+#Read the start location, end location, and oickup time from file
+#Don't have method to select whiwh file to read since it would be a waste of resources
 
-start_location, end_location, pickup_time = readRequestsFile("requests.csv")
-#start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
-#print(start_location)
-#print(end_location)
-#print(pickup_time)
+#start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
 
-# Driver program
-g  = Graph(50)
-g.graph = network
-'''g.graph = [[0, 4, 0, 0, 0, 0, 0, 8, 0],
-            [4, 0, 8, 0, 0, 0, 0, 11, 0],
-            [0, 8, 0, 7, 0, 4, 0, 0, 2],
-            [0, 0, 7, 0, 9, 14, 0, 0, 0],
-            [0, 0, 0, 9, 0, 10, 0, 0, 0],
-            [0, 0, 4, 14, 10, 0, 2, 0, 0],
-            [0, 0, 0, 0, 0, 2, 0, 1, 6],
-            [8, 11, 0, 0, 0, 0, 1, 0, 7],
-            [0, 0, 2, 0, 0, 0, 6, 7, 0]
-            ]'''
-    
-#g.dijkstra(0)
-#print("distance from 0 to ",target_node," is ",node_distance)
-#g.show_path(0,10)
+#Setup graph itself
+network = readNetworkFile("network.csv")                            #read graph weighted adj matrix from file 
+g  = Graph(50)                                                      #setup graph size to the desired size
+g.graph = network                                                   #Assign the graph data received from xml file
 
-#blah = useDikstras(8,46)
-#print("distance from 8 to ",target_node," is ", blah)
-'''origin = (1) - 1 
-destination = (40) -1
-distance = shortestPath(origin, destination)
-print("from ",origin+1," to",destination+1, " is ",distance)'''
-#distance = shortestPath(8, 46)
-#print(distance)
-
+#This calls the mian function that will compute the waiting time of the passengers 
 time_waiting = mainAlgo(start_location, end_location, pickup_time)
-print(time_waiting)
+print("total waiting time is: ",time_waiting)
 
 ###################################END OF START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
@@ -342,7 +314,6 @@ print(time_waiting)
     #i) Easy!                         
 
 
-
 #Imortant notes:
     # When a car completes a "route" (ie responds to a pickup requests, pickups passenger, delivers passenger to dropp off location)
     # The total wait time for the passenger is 
@@ -363,201 +334,3 @@ print(time_waiting)
 #4) How will we divide this algorithm up in terms of functions
 
 ##########################################END QUESTIONS###############################    
-
-
-
-
-############################################RANDOM CODE###############################
-
-'''
-def heuristic(a, b):
-    (x1, y1) = a
-    (x2, y2) = b
-    return abs(x1 - x2) + abs(y1 - y2)
-
-def a_star_search(graph, start, goal):
-    frontier = PriorityQueue()
-    frontier.put(start, 0)
-    came_from = {}
-    cost_so_far = {}
-    came_from[start] = None
-    cost_so_far[start] = 0
-    
-    while not frontier.empty():
-        current = frontier.get()
-        
-        if current == goal:
-            break
-        
-        for next in graph.neighbors(current):
-            new_cost = cost_so_far[current] + graph.cost(current, next)
-            if next not in cost_so_far or new_cost < cost_so_far[next]:
-                cost_so_far[next] = new_cost
-                priority = new_cost + heuristic(goal, next)
-                frontier.put(next, priority)
-                came_from[next] = current
-    
-    return came_from, cost_so_far
-'''
-
-#######################################SEPERATE BETWEEN DIFFERENT OLD CODE################
-
-'''
-class PriorityQueue:
-    # Based on Min Heap
-    def __init__(self):
-        self.cur_size = 0
-        self.array = []
-        self.pos = {}   # To store the pos of node in array
-
-    def isEmpty(self):
-        return self.cur_size == 0
-
-    def min_heapify(self, idx):
-        lc = self.left(idx)
-        rc = self.right(idx)
-        if lc < self.cur_size and self.array(lc)[0] < self.array(idx)[0]:
-            smallest = lc
-        else:
-            smallest = idx
-        if rc < self.cur_size and self.array(rc)[0] < self.array(smallest)[0]:
-            smallest = rc
-        if smallest != idx:
-            self.swap(idx, smallest)
-            self.min_heapify(smallest)
-
-    def insert(self, tup):
-        # Inserts a node into the Priority Queue
-        self.pos[tup[1]] = self.cur_size
-        self.cur_size += 1
-        self.array.append((sys.maxsize, tup[1]))
-        self.decrease_key((sys.maxsize, tup[1]), tup[0])
-
-    def extract_min(self):
-        # Removes and returns the min element at top of priority queue
-        min_node = self.array[0][1]
-        self.array[0] = self.array[self.cur_size - 1]
-        self.cur_size -= 1
-        self.min_heapify(1)
-        del self.pos[min_node]
-        return min_node
-
-    def left(self, i):
-        # returns the index of left child
-        return 2 * i + 1
-
-    def right(self, i):
-        # returns the index of right child
-        return 2 * i + 2
-
-    def par(self, i):
-        # returns the index of parent
-        return math.floor(i / 2)
-
-    def swap(self, i, j):
-        # swaps array elements at indices i and j
-        # update the pos{}
-        self.pos[self.array[i][1]] = j
-        self.pos[self.array[j][1]] = i
-        temp = self.array[i]
-        self.array[i] = self.array[j]
-        self.array[j] = temp
-
-    def decrease_key(self, tup, new_d):
-        idx = self.pos[tup[1]]
-        # assuming the new_d is atmost old_d
-        self.array[idx] = (new_d, tup[1])
-        while idx > 0 and self.array[self.par(idx)][0] > self.array[idx][0]:
-            self.swap(idx, self.par(idx))
-            idx = self.par(idx)
-
-
-class Graph:
-    def __init__(self, num):
-        self.adjList = {}   # To store graph: u -> (v,w)
-        self.num_nodes = num    # Number of nodes in graph
-        # To store the distance from source vertex
-        self.dist = [0] * self.num_nodes
-        self.par = [-1] * self.num_nodes  # To store the path
-
-    def add_edge(self, u, v, w):
-        #  Edge going from node u to v and v to u with weight w
-        # u (w)-> v, v (w) -> u
-        # Check if u already in graph
-        if u in self.adjList.keys():
-            self.adjList[u].append((v, w))
-        else:
-            self.adjList[u] = [(v, w)]
-
-        # Assuming undirected graph
-        if v in self.adjList.keys():
-            self.adjList[v].append((u, w))
-        else:
-            self.adjList[v] = [(u, w)]
-
-    def show_graph(self):
-        # u -> v(w)
-        for u in self.adjList:
-            print(u, '->', ' -> '.join(str("{}({})".format(v, w))
-                                       for v, w in self.adjList[u]))
-
-    def dijkstra(self, src):
-        # Flush old junk values in par[]
-        self.par = [-1] * self.num_nodes
-        # src is the source node
-        self.dist[src] = 0
-        Q = PriorityQueue()
-        Q.insert((0, src))  # (dist from src, node)
-        for u in self.adjList.keys():
-            if u != src:
-                self.dist[u] = sys.maxsize  # Infinity
-                self.par[u] = -1
-
-        while not Q.isEmpty():
-            u = Q.extract_min()  # Returns node with the min dist from source
-            # Update the distance of all the neighbours of u and
-            # if their prev dist was INFINITY then push them in Q
-            for v, w in self.adjList[u]:
-                new_dist = self.dist[u] + w
-                if self.dist[v] > new_dist:
-                    if self.dist[v] == sys.maxsize:
-                        Q.insert((new_dist, v))
-                    else:
-                        Q.decrease_key((self.dist[v], v), new_dist)
-                    self.dist[v] = new_dist
-                    self.par[v] = u
-
-        # Show the shortest distances from src
-        self.show_distances(src)
-
-    def show_distances(self, src):
-        print("Distance from node: {}".format(src))
-        for u in range(self.num_nodes):
-            print('Node {} has distance: {}'.format(u, self.dist[u]))
-
-    def show_path(self, src, dest):
-        # To show the shortest path from src to dest
-        # WARNING: Use it *after* calling dijkstra
-        path = []
-        cost = 0
-        temp = dest
-        # Backtracking from dest to src
-        while self.par[temp] != -1:
-            path.append(temp)
-            if temp != src:
-                for v, w in self.adjList[temp]:
-                    if v == self.par[temp]:
-                        cost += w
-                        break
-            temp = self.par[temp]
-        path.append(src)
-        path.reverse()
-
-        print('----Path to reach {} from {}----'.format(dest, src))
-        for u in path:
-            print('{}'.format(u), end=' ')
-            if u != dest:
-                print('-> ', end='')
-
-        print('\nTotal cost of path: ', cost)
-'''
