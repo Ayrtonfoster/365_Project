@@ -71,14 +71,9 @@ def shortestPath(start_loc, end_loc):
     #If the distance hasn't been calculated yet, calculate it then store its distance
     else:
         dist = useDikstras(start_loc, end_loc)
-        known_paths[start_loc][end_loc] = dist
-        known_paths[end_loc][start_loc] = dist
+        #known_paths[start_loc][end_loc] = dist
+        #known_paths[end_loc][start_loc] = dist
         return dist
-
-#This function will compute the A* Algorithm / be the main function from which A* Operates
-#It will return the time it took to reach node A from node B 
-#def AStarAlgo():
-#    ho = 5
 
 #Dijkstras algorithm derived and moified from original algorithm found here
 #https://github.com/OpenGenus/cosmos/blob/master/code/graph_algorithms/src/dijkstra_shortest_path/Dijkstra.py
@@ -154,33 +149,33 @@ class Graph():
 #checks if there is a valid number
 def check_if_there_is_data(start_location, end_location, pickup_time, i):
 
-    #If the data within 
+    #If the data within is not a number, skip this data set  
     if(math.isnan(start_location[i]-1) or math.isnan(end_location[i]-1) or math.isnan(pickup_time[i])):    
         i+=1
     return i
 
 # This function performs the update on a cars information after a decision regarding which car should pikcup the passenger has been made
 # This function is used for cars whose curren time is before the next pickup time  
-def updateInfo1(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i):
-    car1_time = pickup_time[i]                                                  #Set the cars time to the current time -> wait until request is made before pickup   
-    car1_time += car1_dist                                                      #Update the cars current time given travel to pickup location 
-    tot_wait_time += car1_dist                                                  #Update the tot time passengers are waiting for pickup
-    car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)            #Use Dijkstras to find distance from pickup location to drop off location
-    car1_time += car1_dist                                                      #Update the cars current time given travel to drop off location 
-    car1_location = end_location[i]-1                                           #Set the cars current location to the drop off location
+def updateInfo1(car_time, car_location, car_dist, tot_wait_time, pickup_time, start_location, end_location, i):
+    car_time = pickup_time[i]                                                  #Set the cars time to the current time -> wait until request is made before pickup   
+    car_time += car_dist                                                      #Update the cars current time given travel to pickup location 
+    tot_wait_time += car_dist                                                  #Update the tot time passengers are waiting for pickup
+    car_dist = shortestPath(start_location[i]-1, end_location[i]-1)            #Use Dijkstras to find distance from pickup location to drop off location
+    car_time += car_dist                                                      #Update the cars current time given travel to drop off location 
+    car_location = end_location[i]-1                                           #Set the cars current location to the drop off location
     i+=1                                                                        #Increment counter to the next pickup request    
-    return car1_time, tot_wait_time, car1_dist, car1_location, i            
+    return car_time, tot_wait_time, car_dist, car_location, i            
 
 # This function performs the update on a cars information after a decision regarding which car should pikcup the passenger has been made
 # This function is used for cars whose curren time is beyond the next pickup time  
-def updateInfo2(car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i):
-    tot_wait_time += (car1_dist + (car1_time-pickup_time[i]))                   #Add time it took for car to reach passenger to tot_wait_time
-    car1_time += car1_dist                                                      #Add time required for car1 t reach pickup to cars time  
-    car1_dist = shortestPath(start_location[i]-1, end_location[i]-1)            #Calculate time it takes for car to complate drop off  
-    car1_time += car1_dist                                                      #Add time take to reach destination to car1 time  
-    car1_location = end_location[i]-1                                           #Set car1's location to the drop off location 
+def updateInfo2(car_time, car_location, car_dist, tot_wait_time, pickup_time, start_location, end_location, i):
+    tot_wait_time += (car_dist + (car_time-pickup_time[i]))                   #Add time it took for car to reach passenger to tot_wait_time
+    car_time += car_dist                                                      #Add time required for car1 t reach pickup to cars time  
+    car_dist = shortestPath(start_location[i]-1, end_location[i]-1)            #Calculate time it takes for car to complate drop off  
+    car_time += car_dist                                                      #Add time take to reach destination to car1 time  
+    car_location = end_location[i]-1                                           #Set car1's location to the drop off location 
     i+=1                                                                        #Increment counter to nect pickup requst 
-    return car1_time, tot_wait_time, car1_dist, car1_location, i 
+    return car_time, tot_wait_time, car_dist, car_location, i 
 
 
 def mainAlgo(start_location, end_location, pickup_time):
@@ -204,13 +199,6 @@ def mainAlgo(start_location, end_location, pickup_time):
     while (i < pickups_completed):
 
         heatmap[start_location[i]-1] += 1
-        #heatmap[end_location[i]-1] += 1
-
-        '''max = 0;                                                                          
-        for k in range(len(heatmap)):
-            if heatmap[k] > max: 
-                max = heatmap[k]
-                maxIndex = k'''
         
         #check that the next pickup data is valid 
         i = check_if_there_is_data(start_location, end_location, pickup_time, i)
@@ -223,22 +211,12 @@ def mainAlgo(start_location, end_location, pickup_time):
             if(car1_dist <= car2_dist):
                 car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo1(
                     car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)
-
-                '''car2_dist = shortestPath(car2_location, maxIndex)         
-                if(car2_dist <= (pickup_time[i-1] - car2_time )):
-                    car2_location = maxIndex
-                    car2_time += car2_dist'''  
             else:
                 car2_time, tot_wait_time, car2_dist, car2_location, i = updateInfo1(
                     car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
 
-                '''car1_dist = shortestPath(car1_location, maxIndex)         
-                if(car1_dist <= (pickup_time[i-1] - car1_time )):
-                    car1_location = maxIndex
-                    car1_time += car1_dist'''
-
         #IF both car 1 and car 2's time is greater then the next pickup time         
-        elif(pickup_time[i] < car1_time and pickup_time[i] < car2_time):
+        elif(pickup_time[i] <= car1_time and pickup_time[i] <= car2_time):
             if((car1_time + car1_dist) <= (car2_time + car2_dist)):
                 car1_time, tot_wait_time, car1_dist, car1_location, i = updateInfo2(
                     car1_time, car1_location, car1_dist, tot_wait_time, pickup_time, start_location, end_location, i)
@@ -286,12 +264,19 @@ def mainAlgo(start_location, end_location, pickup_time):
 #Read the start location, end location, and oickup time from file
 #Don't have method to select which file to read since it would be a waste of resources
 
-start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+#start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+
 #start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
+start_location, end_location, pickup_time = readRequestsFile("requests2.csv")
 
 #Setup graph itself
-network = readNetworkFile("network.csv")                            #read graph weighted adj matrix from file 
-g  = Graph(50)                                                      #setup graph size to the desired size
+#network = readNetworkFile("network.csv")                            #read graph weighted adj matrix from file
+ 
+#network = readNetworkFile("network2.csv")
+network = readNetworkFile("newnetwork.csv")
+network_size = len(network)
+
+g  = Graph(network_size)                                                      #setup graph size to the desired size
 g.graph = network                                                   #Assign the graph data received from xml file
 #This calls the mian function that will compute the waiting time of the passengers 
 time_waiting = mainAlgo(start_location, end_location, pickup_time)
@@ -374,3 +359,4 @@ print("total waiting time is: ",time_waiting)
 #4) How will we divide this algorithm up in terms of functions
 
 ##########################################END QUESTIONS###############################    
+
