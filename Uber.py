@@ -2,14 +2,6 @@
 #11/03/18
 #Ayrton Foster 
 
-#Checklist of stuff I can improve in the current working algorithm 
-#[]: Use A* or Similar Algorith instead of Dijkstras Algorithm
-#[x]: Finish Check data function
-#[x]: Save previous results so that they don't need to be recalculated -> maybe in a 2d matrix
-    #->[x]: make a 2d list of lists as golbal var, in each iteration of the algo, check whether than distance has been calculated yet
-    #->[x]: Initially check just path comeplted, but later every path that was calculated in djikstras.
-#[x]: More efficient assignment of car to passenger if one car is busy and other is not
-#[x]: Ability for Uber cars to see into future!?!? (see next stop)
 
 import math
 import random
@@ -30,7 +22,6 @@ target_node = 0
 node_distance = 0
 known_paths = [[0 for x in range(50)] for y in range(50)]
 
-heatmap = [0 for x in range(50)]
 #########################################GOLBAL VARIABLES############################
 
 
@@ -71,8 +62,6 @@ def shortestPath(start_loc, end_loc):
     #If the distance hasn't been calculated yet, calculate it then store its distance
     else:
         dist = useDikstras(start_loc, end_loc)
-        #known_paths[start_loc][end_loc] = dist
-        #known_paths[end_loc][start_loc] = dist
         return dist
 
 #Dijkstras algorithm derived and moified from original algorithm found here
@@ -197,8 +186,6 @@ def mainAlgo(start_location, end_location, pickup_time):
 
     #for i in tqdm(range(300)):                                                                  #To see a visual progress bar represent the progress of the algo
     while (i < pickups_completed):
-
-        heatmap[start_location[i]-1] += 1
         
         #check that the next pickup data is valid 
         i = check_if_there_is_data(start_location, end_location, pickup_time, i)
@@ -245,39 +232,30 @@ def mainAlgo(start_location, end_location, pickup_time):
                     car2_time, car2_location, car2_dist, tot_wait_time, pickup_time, start_location, end_location, i)
 
         else:
-            print("different case")
+            print("Unexpected case occured")
+            i+=1
           
        
-        #print out the car ride # that teh algorithm is currently on 
+        #print out the car ride # that the algorithm is currently on 
         print("car ride ",i," completed")
 
-    #print("hottest node val is: ",max(heatmap), "at index: ", index(max(heatmap)))     
-
-    #print(maxIndex)
-    #print(heatmap)
     #return the total wait time
     return tot_wait_time
 
 
 ###################################START OF MAIN FUNCTION THAT WILL CALL OTHER FUNTIONS##############################
 
-#Read the start location, end location, and oickup time from file
-#Don't have method to select which file to read since it would be a waste of resources
-
-#start_location, end_location, pickup_time = readRequestsFile("requests.csv")
-
-#start_location, end_location, pickup_time = readRequestsFile("supplementpickups.csv")
-start_location, end_location, pickup_time = readRequestsFile("requests2.csv")
+#Read the start location, end location, and pickup time from file
+start_location, end_location, pickup_time = readRequestsFile("requests.csv")
 
 #Setup graph itself
-#network = readNetworkFile("network.csv")                            #read graph weighted adj matrix from file
- 
-#network = readNetworkFile("network2.csv")
-network = readNetworkFile("newnetwork.csv")
+network = readNetworkFile("network.csv")                                #read graph weighted adj matrix from file
+
 network_size = len(network)
 
-g  = Graph(network_size)                                                      #setup graph size to the desired size
-g.graph = network                                                   #Assign the graph data received from xml file
+g  = Graph(network_size)                                                #setup graph size to the desired size
+g.graph = network                                                       #Assign the graph data received from xml file
+
 #This calls the mian function that will compute the waiting time of the passengers 
 time_waiting = mainAlgo(start_location, end_location, pickup_time)
 print("total waiting time is: ",time_waiting)
