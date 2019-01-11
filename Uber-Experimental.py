@@ -284,6 +284,8 @@ def mainAlgo(start_location, end_location, pickup_time):
 
 #Read the start location, end location, and pickup time from file
 start_location, end_location, pickup_time = readRequestsFile("requests.csv")
+start_location, end_location, pickup_time = readRequestsFile("requests2.csv")
+
 
 #Setup graph itself
 #network = readNetworkFile("network.csv")                                #read graph weighted adj matrix from file
